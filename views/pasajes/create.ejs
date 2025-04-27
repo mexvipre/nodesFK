@@ -1,0 +1,134 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-5">
+  <h1>Crear Nuevo Pasaje</h1>
+  
+  <form action="/pasajes/create" method="POST">
+    <div class="box">
+      <div class="field">
+        <label class="label">Pasajero</label>
+        <div class="control">
+          <select class="input" name="id_pasajero" required>
+            <!-- Este option predeterminado aparece solo una vez y está deshabilitado -->
+            <option value="" disabled selected>Selecciona un pasajero</option>
+            <% pasajeros.forEach(pasajero => { %>
+              <option value="<%= pasajero.id_pasajero %>"><%= pasajero.nombre %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Bus</label>
+        <div class="control">
+          <select class="input" name="id_bus" id="id_bus" required>
+            <option value="" disabled selected>Selecciona un bus</option>
+            <% buses.forEach(bus => { %>
+              <option value="<%= bus.id_bus %>"><%= bus.placa %> | <%= bus.ruta %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+      
+
+      <div class="field">
+        <label class="label">Fecha de Viaje</label>
+        <div class="control">
+          <input class="input" type="date" name="fecha_viaje" required />
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Asiento</label>
+        <div class="control" id="asientos-container">
+          <!-- Los asientos disponibles se mostrarán aquí como botones -->
+        </div>
+        <input type="hidden" id="asiento" name="asiento" required />
+      </div>
+
+      <div class="control is-flex is-justify-content-space-between">
+        <button class="button is-primary" type="submit">Registrar Pasaje</button>
+        <a href="/pasajes" class="button is-light">Cancelar</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.getElementById('id_bus').addEventListener('change', function() {
+  const busId = this.value;
+
+  fetch(`/pasajes/asientos/${busId}`)
+    .then(response => response.json())
+    .then(asientos => {
+      const asientosContainer = document.getElementById('asientos-container');
+      asientosContainer.innerHTML = '';
+
+      for (let i = 1; i <= 30; i++) {
+        const button = document.createElement('button');
+        button.textContent = `Asiento ${i}`;
+        button.classList.add('button', 'is-small', 'm-1');
+        button.type = 'button';
+
+        if (asientos.some(asiento => asiento.num_asiento === i)) {
+          button.classList.add('is-success');
+          button.disabled = false;
+          button.addEventListener('click', function() {
+            document.getElementById('asiento').value = i;
+
+            const selectedButton = document.querySelector('.selected-seat');
+            if (selectedButton) {
+              selectedButton.classList.remove('selected-seat');
+            }
+            button.classList.add('selected-seat');
+          });
+        } else {
+          button.classList.add('is-light');
+          button.disabled = true;
+        }
+
+        asientosContainer.appendChild(button);
+      }
+    })
+    .catch(error => {
+      console.error('Error al obtener los asientos disponibles:', error);
+      Swal.fire('Error', 'Hubo un error al obtener los asientos disponibles.', 'error');
+    });
+});
+
+const form = document.querySelector('form');
+form.addEventListener('submit', function(event) {
+  event.preventDefault(); // Evitar el envío del formulario por defecto
+
+  const asientoValue = document.getElementById('asiento').value;
+  if (!asientoValue) {
+    Swal.fire('¡Error!', 'Por favor, selecciona un asiento antes de continuar.', 'warning');
+    return;
+  }
+
+  // Confirmar antes de enviar el formulario
+  Swal.fire({
+    title: '¿Estás seguro?',
+    text: 'Estás a punto de registrar el pasaje. ¿Deseas continuar?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, registrar',
+    cancelButtonText: 'Cancelar'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Si el usuario confirma, enviar el formulario
+      form.submit();
+    }
+  });
+});
+</script>
+
+<style>
+  .selected-seat {
+    border: 2px solid blue;
+    box-shadow: 0 0 10px blue;
+  }
+</style>

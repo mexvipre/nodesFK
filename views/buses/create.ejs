@@ -1,0 +1,113 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-5">
+  <h1>Registrar Nuevo Bus</h1>
+  
+  <form id="formRegistrarBus" action="/buses/create" method="POST">
+    <div class="field">
+      <label class="label">Placa</label>
+      <div class="control">
+        <!-- Solo letras y números -->
+        <input class="input" type="text" name="placa" id="placa" required placeholder="Placa del bus" pattern="^[A-Za-z0-9]+$" title="La placa solo puede contener letras y números." />
+      </div>
+    </div>
+    
+    <div class="field">
+      <label class="label">Ruta</label>
+      <div class="control">
+        <select class="input" name="ruta" id="ruta" required>
+          <option value="Lima - Cusco">Lima - Cusco</option>
+          <option value="Lima - Arequipa">Lima - Arequipa</option>
+          <option value="Lima - Trujillo">Lima - Trujillo</option>
+          <option value="Cusco - Puno">Cusco - Puno</option>
+          <option value="Arequipa - Lima">Arequipa - Lima</option>
+          <option value="Trujillo - Lima">Trujillo - Lima</option>
+          <option value="Lima - Ica">Lima - Ica</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Cantidad de Asientos</label>
+      <div class="control">
+        <!-- Solo números enteros positivos -->
+        <input class="input" type="number" name="cantidad_asientos" id="cantidad_asientos" required placeholder="Cantidad de asientos entre 20 a 30" min="20" max="30" />
+      </div>
+    </div>
+    
+    <div class="control">
+      <button class="button is-primary" type="submit" id="submitBtn">Registrar Bus</button>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>
+
+<!-- Script para SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // Cuando se hace clic en el botón de registrar
+  document.getElementById('submitBtn').addEventListener('click', function(e) {
+    e.preventDefault(); // Evita el envío inmediato del formulario
+
+    // Obtener los valores de los campos
+    const placa = document.getElementById('placa').value;
+    const ruta = document.getElementById('ruta').value;
+    const cantidad_asientos = document.getElementById('cantidad_asientos').value;
+
+    // Validar si los campos están vacíos
+    if (placa.trim() === '' || ruta.trim() === '' || cantidad_asientos.trim() === '') {
+      Swal.fire({
+        title: 'Campos Vacíos',
+        text: 'Por favor, completa todos los campos.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#d33'
+      });
+      return; // No continuar hasta que los campos no estén vacíos
+    }
+
+    // Validar que la placa contenga solo letras y números
+    const placaPattern = /^[A-Za-z0-9]+$/;
+    if (!placaPattern.test(placa)) {
+      Swal.fire({
+        title: 'Error en la Placa',
+        text: 'La placa solo puede contener letras y números.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#d33'
+      });
+      return; // No continuar si la placa es inválida
+    }
+
+    // Validar que la cantidad de asientos esté en el rango de 20 a 30
+    if (cantidad_asientos < 20 || cantidad_asientos > 30) {
+      Swal.fire({
+        title: 'Error en la Cantidad de Asientos',
+        text: 'La cantidad de asientos debe ser entre 20 y 30.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#d33'
+      });
+      return; // No continuar si la cantidad de asientos es inválida
+    }
+
+    // Si todo está bien, mostrar SweetAlert de confirmación
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¿Deseas registrar este bus?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, registrar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Si el usuario confirma, enviar el formulario
+        document.getElementById('formRegistrarBus').submit();
+      }
+    });
+  });
+</script>

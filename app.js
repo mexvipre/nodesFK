@@ -6,6 +6,7 @@ const path = require('path');
 const busesRouter = require('./router/buses');
 const pasajerosRouter = require('./router/pasajeros');
 const pasajesRouter = require('./router/pasajes');
+const indexRouter = require('./router/index');
 
 // Middleware (canal de comunicación)
 const app = express();
@@ -25,11 +26,14 @@ app.set('views', path.join(__dirname, 'views')); // Define el directorio de vist
 app.use('/buses', busesRouter); // Ruta para los buses
 app.use('/pasajeros', pasajerosRouter); // Ruta para los pasajeros
 app.use('/pasajes', pasajesRouter); // Ruta para los pasajes
+app.use('/', indexRouter);
 
 // Redirigir la ruta principal al listado de pasajeros
+// Mostrar la página principal (index.ejs) al acceder a la raíz
 app.get('/', (req, res) => {
-  res.redirect('/pasajeros'); // Redirige a /pasajeros al acceder a la raíz
+  res.render('index'); // Esto renderiza el archivo index.ejs
 });
+
 
 // Iniciar el servidor en el puerto 3000
 app.listen(3000, () => {

@@ -1,9 +1,72 @@
 <%- include('../partials/header') %>
 
 <div class="container mt-5">
-  <h1>Listado de Buses</h1>
-  <p>Bienvenido a la página de buses</p>
-  <!-- Aquí podrías agregar más contenido dinámico -->
+  <h1>Lista de Buses</h1>
+  <a href="/buses/create" class="button is-primary mb-3">Crear Nuevo Bus</a>
+  
+  <table class="table is-striped is-bordered is-hoverable is-fullwidth">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Placa</th>
+        <th>Ruta</th>
+        <th>Cantidad de Asientos</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="buses-list">
+      <% buses.forEach(bus => { %>
+        <tr id="bus-<%= bus.id_bus %>">
+          <td><%= bus.id_bus %></td>
+          <td><%= bus.placa %></td>
+          <td><%= bus.ruta %></td>
+          <td><%= bus.cantidad_asientos %></td>
+          <td>
+            <!-- Botón de editar -->
+            <a href="/buses/editar/<%= bus.id_bus %>" class="button is-info">Editar</a>
+          
+            <!-- Formulario de eliminación con SweetAlert -->
+            <button type="button" class="button is-danger is-light" onclick="confirmDelete('<%= bus.id_bus %>')">Eliminar</button>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
 </div>
 
 <%- include('../partials/footer') %>
+
+<!-- Script para SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+  function confirmDelete(id) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "¡Este cambio no se puede deshacer!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Enviar la solicitud DELETE usando AJAX
+        $.ajax({
+          url: '/buses/eliminar/' + id,
+          type: 'POST',
+          success: function(response) {
+            // Eliminar la fila correspondiente de la tabla sin recargar la página
+            $('#bus-' + id).remove();
+            Swal.fire('Eliminado', 'El bus ha sido eliminado.', 'success');
+          },
+          error: function(xhr, status, error) {
+            Swal.fire('Error', 'Hubo un problema al eliminar el bus.', 'error');
+          }
+        });
+      }
+    });
+  }
+</script>

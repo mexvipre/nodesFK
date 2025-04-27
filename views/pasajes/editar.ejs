@@ -1,0 +1,158 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-5">
+  <h1>Editar Pasaje</h1>
+  
+  <form action="/pasajes/editar/<%= pasaje.id_pasaje %>" method="POST">
+    <div class="box">
+      <div class="field">
+        <label class="label">Pasajero</label>
+        <div class="control">
+          <select class="input" name="id_pasajero" required>
+            <option value="" disabled selected>Selecciona un pasajero</option>
+            <% pasajeros.forEach(pasajero => { %>
+              <option value="<%= pasajero.id_pasajero %>" <%= pasajero.id_pasajero == pasaje.id_pasajero ? 'selected' : '' %>><%= pasajero.nombre %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Bus</label>
+        <div class="control">
+          <select class="input" name="id_bus" id="id_bus" required>
+            <option value="" disabled selected>Selecciona un bus</option>
+            <% buses.forEach(bus => { %>
+              <option value="<%= bus.id_bus %>" <%= bus.id_bus == pasaje.id_bus ? 'selected' : '' %>><%= bus.placa %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Fecha de Viaje</label>
+        <div class="control">
+          <input class="input" type="date" name="fecha_viaje" value="<%= pasaje.fecha_viaje %>" required />
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Asiento</label>
+        <div class="control" id="asientos-container">
+          <!-- Los asientos disponibles se mostrarán aquí como botones -->
+        </div>
+        <input type="hidden" id="asiento" name="asiento" value="<%= pasaje.asiento %>" required />
+      </div>
+
+      <div class="control is-flex is-justify-content-space-between">
+        <button class="button is-primary" type="submit">Actualizar Pasaje</button>
+        <a href="/pasajes" class="button is-light">Cancelar</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// Función para cargar los asientos disponibles
+function loadAsientos(busId) {
+  fetch(`/pasajes/asientos/${busId}`)
+    .then(response => response.json())
+    .then(asientos => {
+      const asientosContainer = document.getElementById('asientos-container');
+      asientosContainer.innerHTML = ''; // Limpiar los asientos actuales
+
+      // Leer el asiento ya seleccionado (del campo oculto)
+      const asientoSeleccionado = parseInt(document.getElementById('asiento').value);
+
+      for (let i = 1; i <= 30; i++) {
+        const button = document.createElement('button');
+        button.textContent = `Asiento ${i}`;
+        button.classList.add('button', 'is-small', 'm-1');
+        button.type = 'button';
+
+        const asientoDisponible = asientos.some(asiento => asiento.num_asiento === i);
+
+        if (asientoDisponible) {
+          button.classList.add('is-success');
+          button.disabled = false;
+          button.addEventListener('click', function() {
+            document.getElementById('asiento').value = i;
+
+            const selectedButton = document.querySelector('.selected-seat');
+            if (selectedButton) {
+              selectedButton.classList.remove('selected-seat');
+            }
+            button.classList.add('selected-seat');
+          });
+
+          // Marcar como seleccionado si corresponde
+          if (i === asientoSeleccionado) {
+            button.classList.add('selected-seat');
+          }
+
+        } else {
+          button.classList.add('is-light');
+          button.disabled = true;
+        }
+
+        asientosContainer.appendChild(button);
+      }
+    })
+    .catch(error => {
+      console.error('Error al obtener los asientos disponibles:', error);
+      Swal.fire('Error', 'Hubo un error al obtener los asientos disponibles.', 'error');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Al cargar la página, cargar los asientos del bus seleccionado
+  const selectedBus = document.getElementById('id_bus').value;
+  if (selectedBus) {
+    loadAsientos(selectedBus);
+  }
+
+  // Cuando cambie el bus seleccionado
+  document.getElementById('id_bus').addEventListener('change', function() {
+    loadAsientos(this.value);
+
+    // También limpiar el asiento seleccionado
+    document.getElementById('asiento').value = '';
+  });
+});
+
+// Validación y confirmación antes de enviar
+const form = document.querySelector('form');
+form.addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  const asientoValue = document.getElementById('asiento').value;
+  if (!asientoValue) {
+    Swal.fire('¡Error!', 'Por favor, selecciona un asiento antes de continuar.', 'warning');
+    return;
+  }
+
+  Swal.fire({
+    title: '¿Estás seguro?',
+    text: 'Estás a punto de actualizar el pasaje. ¿Deseas continuar?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, actualizar',
+    cancelButtonText: 'Cancelar'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      form.submit();
+    }
+  });
+});
+</script>
+
+<style>
+.selected-seat {
+  border: 2px solid blue;
+  box-shadow: 0 0 10px blue;
+}
+</style>

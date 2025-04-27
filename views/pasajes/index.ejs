@@ -1,10 +1,67 @@
-<!-- views/pasajes/index.ejs -->
 <%- include('../partials/header') %>
 
-<div class="container mt-5">
-  <h1>Listado de Pasajes</h1>
-  <p>Bienvenido a la página de pasajes</p>
-  <!-- Aquí podrías agregar más contenido dinámico -->
+<div class="container mt-4">
+  <h1 class="title is-4">Lista de Pasajes</h1>
+  <a href="/pasajes/create" class="button is-small is-primary mb-3">Crear Nuevo Pasaje</a>
+  
+  <table class="table is-striped is-bordered is-hoverable is-fullwidth is-size-7">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Pasajero</th>
+        <th>Bus</th>
+        <th>Fecha de Viaje</th>
+        <th>Asiento</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% pasajes.forEach(pasaje => { %>
+        <tr>
+          <td><%= pasaje.id_pasaje %></td>
+          <td><%= pasaje.nombre %></td>
+          <td><%= pasaje.placa %></td>
+          <td><%= pasaje.fecha_viaje %></td>
+          <td><%= pasaje.asiento %></td>
+          <td>
+            <a href="/pasajes/editar/<%= pasaje.id_pasaje %>" class="button is-small is-info is-light">Editar</a>
+            <button type="button" class="button is-small is-danger is-light" onclick="confirmDelete('<%= pasaje.id_pasaje %>')">Eliminar</button>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
 </div>
 
 <%- include('../partials/footer') %>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  function confirmDelete(id) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "¡Este cambio no se puede deshacer!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: '/pasajes/eliminar/' + id,
+          type: 'POST',
+          success: function() {
+            Swal.fire('Eliminado', 'El pasaje ha sido eliminado.', 'success');
+            location.reload();
+          },
+          error: function() {
+            Swal.fire('Error', 'Hubo un problema al eliminar el pasaje.', 'error');
+          }
+        });
+      }
+    });
+  }
+</script>

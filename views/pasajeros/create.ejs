@@ -32,66 +32,53 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  // Cuando se hace clic en el botón de registrar
-  document.getElementById('submitBtn').addEventListener('click', function(e) {
-    e.preventDefault(); // Evita el envío inmediato del formulario
-
-    // Verificar si los campos están llenos
-    const nombre = document.getElementById('nombre').value;
-    const dni = document.getElementById('dni').value;
-
-    if (nombre.trim() === '' || dni.trim() === '') {
-      Swal.fire({
-        title: 'Campos Vacíos',
-        text: 'Por favor, completa todos los campos.',
-        icon: 'error',
-        confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#d33'
-      });
-      return; // No continuar hasta que los campos no estén vacíos
-    }
-
-    // Validar que el nombre contenga solo letras
-    const nombrePattern = /^[a-zA-Z\s]+$/;
-    if (!nombrePattern.test(nombre)) {
-      Swal.fire({
-        title: 'Error en el Nombre',
-        text: 'El nombre solo puede contener letras y espacios.',
-        icon: 'error',
-        confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#d33'
-      });
-      return; // No continuar si el nombre es inválido
-    }
-
-    // Validar que el DNI tenga exactamente 8 dígitos numéricos
-    const dniPattern = /^\d{8}$/;
-    if (!dniPattern.test(dni)) {
-      Swal.fire({
-        title: 'Error en el DNI',
-        text: 'El DNI debe tener exactamente 8 dígitos numéricos.',
-        icon: 'error',
-        confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#d33'
-      });
-      return; // No continuar si el DNI es inválido
-    }
-
-    // Si todo está bien, mostrar SweetAlert de confirmación
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: '¿Deseas registrar este pasajero?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, registrar',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Si el usuario confirma, enviar el formulario
-        document.getElementById('formRegistrarPasajero').submit();
-      }
+    // Cuando se cambia el bus, obtener los asientos disponibles y ocupados para ese bus
+    document.getElementById('id_bus').addEventListener('change', function() {
+      const busId = this.value;
+  
+      // Hacer una solicitud AJAX para obtener los asientos disponibles y ocupados
+      fetch(`/pasajes/asientos/${busId}`)
+        .then(response => response.json())
+        .then(data => {
+          const asientoContainer = document.getElementById('asiento-buttons');
+          asientoContainer.innerHTML = '';  // Limpiar los asientos actuales
+  
+          // Si hay asientos disponibles, crearlos como botones
+          if (data.asientosDisponibles.length > 0) {
+            data.asientosDisponibles.forEach(asiento => {
+              const button = document.createElement('button');
+              button.classList.add('button', 'is-small', 'is-info', 'm-1');
+              button.type = 'button';
+              button.textContent = `Asiento ${asiento}`;
+              button.onclick = function() {
+                // Seleccionar el asiento al hacer clic
+                document.getElementById('asiento').value = asiento;
+                // Cambiar el color del botón al seleccionarlo
+                button.classList.remove('is-info');
+                button.classList.add('is-success');
+              };
+              asientoContainer.appendChild(button);
+            });
+          } else {
+            const message = document.createElement('p');
+            message.textContent = 'No hay asientos disponibles';
+            asientoContainer.appendChild(message);
+          }
+  
+          // Deshabilitar los asientos ocupados
+          data.asientosOcupados.forEach(asiento => {
+            const button = document.querySelector(`#seat-${asiento}`);
+            if (button) {
+              button.disabled = true;
+              button.classList.remove('is-info');
+              button.classList.add('is-grey');
+            }
+          });
+        })
+        .catch(error => {
+          console.error('Error al obtener los asientos disponibles:', error);
+          Swal.fire('Error', 'Hubo un error al obtener los asientos disponibles.', 'error');
+        });
     });
-  });
-</script>
+  </script>
+  
