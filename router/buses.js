@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 
-// Definir rutas...
+// Ruta para los buses
 router.get('/', (req, res) => {
-  res.send('Ruta para los buses');
+  res.render('buses/index'); // Asegúrate de que la vista esté en views/buses/index.ejs
 });
 
-module.exports = router;  // Asegúrate de exportarlo correctamente
+module.exports = router;
