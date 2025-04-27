@@ -1,5 +1,5 @@
 -- Crear base de datos
-CREATE DATABASE terminal_buses;
+create DATABASE terminal_buses;
 USE terminal_buses;
 
 -- Crear tabla de pasajeros
@@ -71,7 +71,14 @@ VALUES (7, 7, '2025-05-07', 1);
 
 
 
+DELIMITER $$
 
+CREATE PROCEDURE eliminar_pasaje(IN pasaje_id INT)
+BEGIN
+    DELETE FROM pasajes WHERE id_pasaje = pasaje_id;
+END $$
+
+DELIMITER ;
 
 
 
