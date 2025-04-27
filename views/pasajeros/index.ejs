@@ -1,0 +1,70 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-5">
+  <h1>Lista de Pasajeros</h1>
+  <a href="/pasajeros/create" class="button is-primary mb-3">Crear Nuevo Pasajero</a>
+  
+  <table class="table is-striped is-bordered is-hoverable is-fullwidth">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>DNI</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="pasajeros-list">
+      <% pasajeros.forEach(pasajero => { %>
+        <tr id="pasajero-<%= pasajero.id_pasajero %>">
+          <td><%= pasajero.id_pasajero %></td>
+          <td><%= pasajero.nombre %></td>
+          <td><%= pasajero.dni %></td>
+          <td>
+            <!-- Botón de editar -->
+            <a href="/pasajeros/editar/<%= pasajero.id_pasajero %>" class="button is-info">Editar</a>
+          
+            <!-- Formulario de eliminación con SweetAlert -->
+            <button type="button" class="button is-danger is-light" onclick="confirmDelete('<%= pasajero.id_pasajero %>')">Eliminar</button>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/footer') %>
+
+<!-- Script para SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+  function confirmDelete(id) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "¡Este cambio no se puede deshacer!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Enviar la solicitud DELETE usando AJAX
+        $.ajax({
+          url: '/pasajeros/eliminar/' + id,
+          type: 'POST',
+          success: function(response) {
+            // Eliminar la fila correspondiente de la tabla sin recargar la página
+            $('#pasajero-' + id).remove();
+            Swal.fire('Eliminado', 'El pasajero ha sido eliminado.', 'success');
+          },
+          error: function(xhr, status, error) {
+            Swal.fire('Error', 'Hubo un problema al eliminar el pasajero.', 'error');
+          }
+        });
+      }
+    });
+  }
+</script>
